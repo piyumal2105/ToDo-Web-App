@@ -3,6 +3,7 @@ import "dotenv/config";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dbConnect from "./configs/dbConfig.js";
+import UserRoute from "./routes/userRoute.js";
 
 //initialized express
 const app = express();
@@ -14,7 +15,7 @@ const PORT = process.env.PORT || 6001;
 
 // root end point
 app.get("/", (req, res) => {
-    res.send("Welcome to ToDo App");
+  res.send("Welcome to ToDo App");
 });
 
 // CORS [allow the pass the cookies to orin localhost]
@@ -29,12 +30,14 @@ app.use(express.urlencoded({ extended: false }));
 // register cookie parser middleware
 app.use(cookieParser());
 
+app.use("/user", UserRoute);
+
 app.use((req, res, next) => {
-    console.log(`${req.method} =====> URL: ${req.url}`);
-    next();
+  console.log(`${req.method} =====> URL: ${req.url}`);
+  next();
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀💀 Server is started on port ${PORT}!`);
-    dbConnect();
+  console.log(`🚀💀 Server is started on port ${PORT}!`);
+  dbConnect();
 });
