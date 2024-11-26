@@ -1,12 +1,13 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from "react";
-import { TextField, Button, Box, Typography, Link } from "@mui/material";
+import { TextField, Button, Box, Typography, Link, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // State to manage error messages
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -18,7 +19,8 @@ const LoginPage = () => {
       localStorage.setItem("token", response.data.token);
       navigate("/todo");
     } catch (error) {
-      console.error("Login failed:", error.response.data.message);
+      // Display error message for unauthorized or other issues
+      setErrorMessage(error.response?.data?.error || "An error occurred");
     }
   };
 
@@ -61,6 +63,17 @@ const LoginPage = () => {
           >
             Welcome Back!
           </Typography>
+
+          {errorMessage && (
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              onClose={() => setErrorMessage("")} // Allow dismissing the alert
+            >
+              {errorMessage}
+            </Alert>
+          )}
+
           <TextField
             label="Email"
             type="email"
