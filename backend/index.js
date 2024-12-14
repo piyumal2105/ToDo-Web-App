@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dbConnect from "./configs/dbConfig.js";
 import UserRoute from "./routes/userRoute.js";
+import ToDoRoute from "./routes/todoRoutes.js";
 
 //initialized express
 const app = express();
@@ -31,6 +32,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use("/user", UserRoute);
+app.use("/todo", ToDoRoute);
 
 app.use((req, res, next) => {
   console.log(`${req.method} =====> URL: ${req.url}`);
