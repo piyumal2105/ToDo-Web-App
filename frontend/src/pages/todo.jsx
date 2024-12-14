@@ -216,8 +216,9 @@ export default function Todo() {
                         color="text.secondary"
                         paragraph
                       >
-                        {new Date(todo.deadline).toLocaleDateString("en-GB")}
+                        {new Date(todo.deadline).toISOString().split("T")[0]}
                       </Typography>
+
                       <Button variant="outlined" color="primary" fullWidth>
                         Mark as Done
                       </Button>
