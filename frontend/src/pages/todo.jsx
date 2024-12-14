@@ -199,7 +199,7 @@ export default function Todo() {
             {Array.isArray(todos) && todos.length > 0 ? (
               todos.map((todo) => (
                 <Grid item xs={12} sm={6} md={4} key={todo.id}>
-                  <Card>
+                  <Card style={{ height: "200px" }}>
                     <CardContent>
                       <Typography variant="h5" component="div">
                         {todo.title}
@@ -210,6 +210,13 @@ export default function Todo() {
                         paragraph
                       >
                         {todo.description}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        paragraph
+                      >
+                        {new Date(todo.deadline).toLocaleDateString("en-GB")}
                       </Typography>
                       <Button variant="outlined" color="primary" fullWidth>
                         Mark as Done
