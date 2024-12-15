@@ -395,11 +395,14 @@ export default function Todo() {
               value={newTodo.deadline}
               onChange={handleChange}
               margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
             />
             <TextField
               label="Reminder"
               name="reminder"
-              type="datetime-local" 
+              type="datetime-local"
               fullWidth
               value={newTodo.reminder}
               onChange={handleChange}
