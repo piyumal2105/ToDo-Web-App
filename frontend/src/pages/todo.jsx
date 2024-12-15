@@ -22,9 +22,14 @@ import {
   Fab,
   Snackbar,
   Alert,
+  Box,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 export default function Todo() {
   const [todos, setTodos] = useState([]);
@@ -38,6 +43,9 @@ export default function Todo() {
     tags: "",
     reminder: "",
   });
+
+  const [viewTodo, setViewTodo] = useState(null); // State to store selected Todo for viewing
+  const [viewOpen, setViewOpen] = useState(false); // State to manage view dialog
 
   // Snackbar state for feedback
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -116,12 +124,10 @@ export default function Todo() {
   const handleAddTodo = async () => {
     const token = localStorage.getItem("token");
 
-    // Check if the deadline is a future date
     const currentDate = new Date();
     const selectedDeadline = new Date(newTodo.deadline);
 
     if (selectedDeadline <= currentDate) {
-      // Show error Snackbar if the deadline is not a future date
       setSnackbarMessage("Deadline must be a future date.");
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
@@ -152,26 +158,44 @@ export default function Todo() {
             reminder: "",
           });
 
-          // Show success Snackbar
           setSnackbarMessage("Todo added successfully!");
           setSnackbarSeverity("success");
           setOpenSnackbar(true);
         } else {
-          console.error("Failed to add todo");
-
-          // Show error Snackbar
           setSnackbarMessage("Failed to add Todo. Please try again.");
           setSnackbarSeverity("error");
           setOpenSnackbar(true);
         }
       } catch (error) {
-        console.error("Error adding todo:", error);
-
-        // Show error Snackbar
         setSnackbarMessage("An error occurred. Please try again.");
         setSnackbarSeverity("error");
         setOpenSnackbar(true);
       }
+    }
+  };
+
+  // Handle View Todo
+  const handleViewTodo = (todo) => {
+    setViewTodo(todo);
+    setViewOpen(true);
+  };
+
+  const handleViewClose = () => {
+    setViewOpen(false);
+    setViewTodo(null);
+  };
+
+  // Function to determine the priority color
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case "Low":
+        return "green";
+      case "Medium":
+        return "orange";
+      case "High":
+        return "red";
+      default:
+        return "grey";
     }
   };
 
@@ -190,6 +214,60 @@ export default function Todo() {
       </AppBar>
 
       <Container>
+        {/* Priority Section on the Side */}
+        <Box
+          display="flex"
+          flexDirection="column"
+          position="fixed"
+          top="100px"
+          left="16px"
+          padding={2}
+          borderRadius={2}
+        >
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            flexDirection="column"
+            bgcolor="green"
+            color="white"
+            padding={1}
+            borderRadius={1}
+            width="100%"
+            textAlign="center"
+            marginBottom="8px"
+          >
+            <Typography>Low</Typography>
+          </Box>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            flexDirection="column"
+            bgcolor="orange"
+            color="white"
+            padding={1}
+            borderRadius={1}
+            width="100%"
+            marginBottom="8px"
+          >
+            <Typography>Medium</Typography>
+          </Box>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            flexDirection="column"
+            bgcolor="red"
+            color="white"
+            padding={1}
+            borderRadius={1}
+            width="100%"
+          >
+            <Typography>High</Typography>
+          </Box>
+        </Box>
+
         {loading ? (
           <Typography variant="h6" align="center" style={{ marginTop: "20px" }}>
             Loading todos...
@@ -199,30 +277,75 @@ export default function Todo() {
             {Array.isArray(todos) && todos.length > 0 ? (
               todos.map((todo) => (
                 <Grid item xs={12} sm={6} md={4} key={todo.id}>
-                  <Card style={{ height: "200px" }}>
-                    <CardContent>
-                      <Typography variant="h5" component="div">
-                        {todo.title}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        paragraph
+                  <Card>
+                    <Grid container spacing={0}>
+                      <Grid
+                        item
+                        xs={12}
+                        style={{
+                          backgroundColor: getPriorityColor(todo.priority),
+                          padding: "8px",
+                        }}
                       >
-                        {todo.description}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        paragraph
-                      >
-                        {new Date(todo.deadline).toISOString().split("T")[0]}
-                      </Typography>
-
-                      <Button variant="outlined" color="primary" fullWidth>
-                        Mark as Done
-                      </Button>
-                    </CardContent>
+                        <Typography
+                          variant="h6"
+                          style={{
+                            color: "white",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                          }}
+                        >
+                          {/* {todo.priority} */}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <CardContent>
+                          <Typography variant="h5" component="div">
+                            {todo.title}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            paragraph
+                          >
+                            {todo.description}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            paragraph
+                          >
+                            {
+                              new Date(todo.deadline)
+                                .toISOString()
+                                .split("T")[0]
+                            }
+                          </Typography>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleViewTodo(todo)}
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                            <IconButton color="info">
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton color="error">
+                              <DeleteIcon />
+                            </IconButton>
+                            <IconButton color="success">
+                              <CheckCircleIcon />
+                            </IconButton>
+                          </div>
+                        </CardContent>
+                      </Grid>
+                    </Grid>
                   </Card>
                 </Grid>
               ))
@@ -241,34 +364,30 @@ export default function Todo() {
         {/* Add Todo Dialog */}
         <Dialog open={open} onClose={handleClose}>
           <DialogTitle>Add Todo</DialogTitle>
-          <DialogContent sx={{ padding: "24px" }}>
+          <DialogContent>
             <TextField
               label="Title"
               name="title"
+              fullWidth
               value={newTodo.title}
               onChange={handleChange}
-              fullWidth
-              style={{ marginBottom: "16px", marginTop: "16px" }}
+              margin="normal"
             />
             <TextField
               label="Description"
               name="description"
+              fullWidth
               value={newTodo.description}
               onChange={handleChange}
-              fullWidth
-              multiline
-              rows={4}
-              style={{ marginBottom: "16px" }}
+              margin="normal"
             />
-            <FormControl
-              fullWidth
-              style={{ marginBottom: "16px", marginTop: "16px" }}
-            >
+            <FormControl fullWidth margin="normal">
               <InputLabel>Priority</InputLabel>
               <Select
                 name="priority"
                 value={newTodo.priority}
                 onChange={handleChange}
+                label="Priority"
               >
                 <MenuItem value="Low">Low</MenuItem>
                 <MenuItem value="Medium">Medium</MenuItem>
@@ -279,37 +398,30 @@ export default function Todo() {
               label="Deadline"
               name="deadline"
               type="date"
+              fullWidth
               value={newTodo.deadline}
               onChange={handleChange}
-              fullWidth
-              style={{ marginBottom: "16px" }}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-            <TextField
-              label="Reminder"
-              name="reminder"
-              type="datetime-local"
-              value={newTodo.reminder}
-              onChange={handleChange}
-              fullWidth
-              style={{ marginBottom: "16px" }}
-              InputLabelProps={{
-                shrink: true,
-              }}
+              margin="normal"
             />
             <TextField
               label="Tags"
               name="tags"
+              fullWidth
               value={newTodo.tags}
               onChange={handleChange}
+              margin="normal"
+            />
+            <TextField
+              label="Reminder"
+              name="reminder"
               fullWidth
-              style={{ marginBottom: "16px" }}
+              value={newTodo.reminder}
+              onChange={handleChange}
+              margin="normal"
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose} color="secondary">
+            <Button onClick={handleClose} color="primary">
               Cancel
             </Button>
             <Button onClick={handleAddTodo} color="primary">
@@ -317,37 +429,83 @@ export default function Todo() {
             </Button>
           </DialogActions>
         </Dialog>
-      </Container>
 
-      {/* Floating Action Button (FAB) for adding Todo */}
-      <Fab
-        color="primary"
-        aria-label="add"
-        onClick={handleClickOpen}
-        style={{
-          position: "fixed",
-          bottom: "70px",
-          right: "70px",
-        }}
-      >
-        <AddIcon />
-      </Fab>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000}
-        onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setOpenSnackbar(false)}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
+        {/* View Todo Dialog */}
+        <Dialog
+          open={viewOpen}
+          onClose={handleViewClose}
+          fullWidth
+          maxWidth="sm" // Options: 'xs', 'sm', 'md', 'lg', 'xl'
         >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+          <DialogTitle>Todo Details</DialogTitle>
+          <DialogContent
+            style={{
+              padding: "24px",
+              fontSize: "16px", // Adjust font size for better readability
+            }}
+          >
+            {viewTodo && (
+              <>
+                <Typography variant="h5" style={{ marginBottom: "16px" }}>
+                  Title: {viewTodo.title}
+                </Typography>
+                <Typography variant="body1" style={{ marginBottom: "16px" }}>
+                  <strong>Description:</strong> {viewTodo.description}
+                </Typography>
+                <Typography variant="body1" style={{ marginBottom: "16px" }}>
+                  <strong>Priority:</strong> {viewTodo.priority}
+                </Typography>
+                <Typography variant="body1" style={{ marginBottom: "16px" }}>
+                  <strong>Deadline:</strong>{" "}
+                  {new Date(viewTodo.deadline).toLocaleDateString()}
+                </Typography>
+                <Typography variant="body1" style={{ marginBottom: "16px" }}>
+                  <strong>Tags:</strong> {viewTodo.tags}
+                </Typography>
+                <Typography variant="body1" style={{ marginBottom: "16px" }}>
+                  <strong>Reminder:</strong>{" "}
+                  {viewTodo.reminder &&
+                    new Date(viewTodo.reminder).toLocaleString()}
+                </Typography>
+              </>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleViewClose} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Floating Action Button */}
+        <Fab
+          color="primary"
+          aria-label="add"
+          style={{
+            position: "fixed",
+            bottom: "16px",
+            right: "16px",
+          }}
+          onClick={handleClickOpen}
+        >
+          <AddIcon />
+        </Fab>
+
+        {/* Snackbar for Feedback */}
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={() => setOpenSnackbar(false)}
+        >
+          <Alert
+            onClose={() => setOpenSnackbar(false)}
+            severity={snackbarSeverity}
+            sx={{ width: "100%" }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </Container>
     </div>
   );
 }
