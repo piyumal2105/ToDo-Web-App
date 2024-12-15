@@ -44,8 +44,8 @@ export default function Todo() {
     reminder: "",
   });
 
-  const [viewTodo, setViewTodo] = useState(null); // State to store selected Todo for viewing
-  const [viewOpen, setViewOpen] = useState(false); // State to manage view dialog
+  const [viewTodo, setViewTodo] = useState(null);
+  const [viewOpen, setViewOpen] = useState(false);
 
   // Snackbar state for feedback
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -281,24 +281,17 @@ export default function Todo() {
                     <Grid container spacing={0}>
                       <Grid
                         item
-                        xs={12}
+                        xs={0.4}
                         style={{
                           backgroundColor: getPriorityColor(todo.priority),
-                          padding: "8px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
-                      >
-                        <Typography
-                          variant="h6"
-                          style={{
-                            color: "white",
-                            fontWeight: "bold",
-                            textAlign: "center",
-                          }}
-                        >
-                          {/* {todo.priority} */}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12}>
+                      ></Grid>
+
+                      {/* Main Content */}
+                      <Grid item xs={11}>
                         <CardContent>
                           <Typography variant="h5" component="div">
                             {todo.title}
@@ -404,18 +397,23 @@ export default function Todo() {
               margin="normal"
             />
             <TextField
+              label="Reminder"
+              name="reminder"
+              type="datetime-local" 
+              fullWidth
+              value={newTodo.reminder}
+              onChange={handleChange}
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+
+            <TextField
               label="Tags"
               name="tags"
               fullWidth
               value={newTodo.tags}
-              onChange={handleChange}
-              margin="normal"
-            />
-            <TextField
-              label="Reminder"
-              name="reminder"
-              fullWidth
-              value={newTodo.reminder}
               onChange={handleChange}
               margin="normal"
             />
@@ -483,8 +481,8 @@ export default function Todo() {
           aria-label="add"
           style={{
             position: "fixed",
-            bottom: "16px",
-            right: "16px",
+            bottom: "70px",
+            right: "70px",
           }}
           onClick={handleClickOpen}
         >
