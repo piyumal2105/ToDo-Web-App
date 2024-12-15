@@ -305,6 +305,43 @@ export default function Todo() {
     }
   };
 
+  // Handle Delete Todo
+  const handleDeleteTodo = async (todoId) => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      try {
+        // Sending DELETE request to the server
+        const response = await fetch(`http://localhost:3001/todo/${todoId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          // Remove the deleted todo from the state
+          setTodos((prevTodos) =>
+            prevTodos.filter((todo) => todo.id !== todoId)
+          );
+          setSnackbarMessage("Todo deleted successfully!");
+          setSnackbarSeverity("success");
+          setOpenSnackbar(true);
+        } else {
+          setSnackbarMessage("Failed to delete Todo. Please try again.");
+          setSnackbarSeverity("error");
+          setOpenSnackbar(true);
+        }
+      } catch (error) {
+        console.error("Delete Error:", error);
+        setSnackbarMessage(`An error occurred: ${error.message}`);
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+      }
+    }
+  };
+
   return (
     <div>
       <AppBar position="sticky">
@@ -438,7 +475,10 @@ export default function Todo() {
                             >
                               <EditIcon />
                             </IconButton>
-                            <IconButton color="error">
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDeleteTodo(todo.id)}
+                            >
                               <DeleteIcon />
                             </IconButton>
                             <IconButton color="success">
