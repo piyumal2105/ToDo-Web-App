@@ -35,6 +35,7 @@ export default function Todo() {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [newTodo, setNewTodo] = useState({
     title: "",
     description: "",
@@ -44,6 +45,7 @@ export default function Todo() {
     reminder: "",
   });
 
+  const [editTodo, setEditTodo] = useState(null);
   const [viewTodo, setViewTodo] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
 
@@ -199,6 +201,110 @@ export default function Todo() {
     }
   };
 
+  // Handle Edit Todo
+  const handleEditTodo = (todo) => {
+    setEditTodo(todo);
+    setEditOpen(true);
+  };
+
+  // Handle Edit Dialog Close
+  const handleEditClose = () => {
+    setEditOpen(false);
+    setEditTodo(null);
+  };
+
+  // Handle Edit Form Change
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditTodo((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  // Submit Updated Todo
+  const handleUpdateTodo = async () => {
+    const token = localStorage.getItem("token");
+
+    // Add logging to check the editTodo object
+    console.log("Edit Todo Object:", editTodo);
+
+    // Validate that editTodo and its id exist
+    if (!editTodo || !editTodo.id) {
+      setSnackbarMessage("Invalid todo. Cannot update.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      return;
+    }
+
+    const currentDate = new Date();
+    const selectedDeadline = new Date(editTodo.deadline);
+
+    if (selectedDeadline <= currentDate) {
+      setSnackbarMessage("Deadline must be a future date.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      return;
+    }
+
+    if (token) {
+      try {
+        // Log the full payload being sent
+        console.log("Update Payload:", JSON.stringify(editTodo));
+
+        const response = await fetch(
+          `http://localhost:3001/todo/${editTodo.id}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(editTodo),
+          }
+        );
+
+        // Log the response for debugging
+        const responseText = await response.text();
+        console.log("Response Status:", response.status);
+        console.log("Response Text:", responseText);
+
+        if (response.ok) {
+          // Try to parse the response if it's JSON
+          let updatedTodo;
+          try {
+            updatedTodo = JSON.parse(responseText);
+          } catch {
+            updatedTodo = editTodo;
+          }
+
+          // Update the todos state with the updated todo
+          setTodos((prevTodos) =>
+            prevTodos.map((todo) =>
+              todo.id === editTodo.id ? updatedTodo : todo
+            )
+          );
+
+          setEditOpen(false);
+          setEditTodo(null);
+
+          setSnackbarMessage("Todo updated successfully!");
+          setSnackbarSeverity("success");
+          setOpenSnackbar(true);
+        } else {
+          setSnackbarMessage(`Failed to update Todo: ${responseText}`);
+          setSnackbarSeverity("error");
+          setOpenSnackbar(true);
+        }
+      } catch (error) {
+        console.error("Update Error:", error);
+        setSnackbarMessage(`An error occurred: ${error.message}`);
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+      }
+    }
+  };
+
   return (
     <div>
       <AppBar position="sticky">
@@ -326,7 +432,10 @@ export default function Todo() {
                             >
                               <VisibilityIcon />
                             </IconButton>
-                            <IconButton color="info">
+                            <IconButton
+                              color="info"
+                              onClick={() => handleEditTodo(todo)}
+                            >
                               <EditIcon />
                             </IconButton>
                             <IconButton color="error">
@@ -353,6 +462,90 @@ export default function Todo() {
             )}
           </Grid>
         )}
+
+        {/* Edit Todo Dialog */}
+        <Dialog open={editOpen} onClose={handleEditClose}>
+          <DialogTitle>Edit Todo</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Title"
+              name="title"
+              fullWidth
+              value={editTodo?.title || ""}
+              onChange={handleEditChange}
+              margin="normal"
+            />
+            <TextField
+              label="Description"
+              name="description"
+              fullWidth
+              value={editTodo?.description || ""}
+              onChange={handleEditChange}
+              margin="normal"
+            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Priority</InputLabel>
+              <Select
+                name="priority"
+                value={editTodo?.priority || ""}
+                onChange={handleEditChange}
+                label="Priority"
+              >
+                <MenuItem value="Low">Low</MenuItem>
+                <MenuItem value="Medium">Medium</MenuItem>
+                <MenuItem value="High">High</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              label="Deadline"
+              name="deadline"
+              type="date"
+              fullWidth
+              value={
+                editTodo?.deadline
+                  ? new Date(editTodo.deadline).toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={handleEditChange}
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Reminder"
+              name="reminder"
+              type="datetime-local"
+              fullWidth
+              value={
+                editTodo?.reminder
+                  ? new Date(editTodo.reminder).toISOString().slice(0, 16)
+                  : ""
+              }
+              onChange={handleEditChange}
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Tags"
+              name="tags"
+              fullWidth
+              value={editTodo?.tags || ""}
+              onChange={handleEditChange}
+              margin="normal"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleEditClose} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateTodo} color="primary">
+              Update Todo
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Add Todo Dialog */}
         <Dialog open={open} onClose={handleClose}>
